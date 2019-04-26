@@ -6,6 +6,7 @@ from matplotlib.colors import to_rgb
 
 from dps.utils import Param
 from dps.utils.tf import tf_mean_sum, RenderHook, GridConvNet
+from dps.train import Hook
 
 from auto_yolo.models.core import AP, xent_loss, VariationalAutoencoder
 from auto_yolo.models.object_layer import GridObjectLayer
@@ -485,3 +486,22 @@ class YoloAir_PaperSetRenderHook(RenderHook):
             plt.subplots_adjust(left=0.02, right=.98, top=.98, bottom=0.02, wspace=0.1, hspace=0.1)
 
             self.savefig("sampled_patches/" + str(idx), fig, updater)
+
+class ObjectDetectionProcessingHook(Hook):
+    '''
+    author: Claas Voelcker
+
+    Hook object to extract the object representation from the yolo_air model to use it
+    in downstream tasks.
+    '''
+
+    model_rep = None
+    
+    def __init__(self):
+        '''
+        Initializes a hook which is called during the final training or eval stage to
+        extract the needed data
+        '''
+        super(ObjectDetectionProcessingHook, self).__init__(final=True)
+
+    def step(self, training_loop, updater, step_idx)

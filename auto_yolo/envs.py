@@ -16,6 +16,7 @@ from dps.config import DEFAULT_CONFIG
 
 import auto_yolo.algs as alg_module
 from auto_yolo.models.core import EvalHook
+from auto_yolo.datasets.atari import AtariImageFileDataset
 
 
 def sanitize(s):
@@ -86,16 +87,7 @@ def run_experiment(
         name=exp_name, config=_config, distributions=distributions, **run_kwargs)
 
 
-class Environment:
-    @property
-    def obs_shape(self):
-        return self.datasets["train"].obs_shape
-
-    def close(self):
-        pass
-
-
-class Nips2018Grid(Environment):
+class Nips2018Grid(object):
     def __init__(self):
         train_seed, val_seed, test_seed = 0, 1, 2
         train = GridEmnistObjectDetectionDataset(
@@ -112,8 +104,11 @@ class Nips2018Grid(Environment):
 
         self.datasets = dict(train=train, val=val, test=test)
 
+    def close(self):
+        pass
 
-class Nips2018Scatter(Environment):
+
+class Nips2018Scatter(object):
     def __init__(self):
         train_seed, val_seed, test_seed = 0, 1, 2
         train = EmnistObjectDetectionDataset(
@@ -130,8 +125,11 @@ class Nips2018Scatter(Environment):
 
         self.datasets = dict(train=train, val=val, test=test)
 
+    def close(self):
+        pass
 
-class Nips2018Arithmetic(Environment):
+
+class Nips2018Arithmetic(object):
     def __init__(self):
         train_seed, val_seed, test_seed = 0, 1, 2
 
@@ -149,8 +147,11 @@ class Nips2018Arithmetic(Environment):
 
         self.datasets = dict(train=train, val=val, test=test)
 
+    def close(self):
+        pass
 
-class Nips2018Shapes(Environment):
+
+class Nips2018Shapes(object):
     def __init__(self):
         train_seed, val_seed, test_seed = 0, 1, 2
 
@@ -160,8 +161,11 @@ class Nips2018Shapes(Environment):
 
         self.datasets = dict(train=train, val=val, test=test)
 
+    def close(self):
+        pass
 
-class Nips2018ShapesQA(Environment):
+
+class Nips2018ShapesQA(object):
     def __init__(self):
         train_seed, val_seed, test_seed = 0, 1, 2
 
@@ -171,8 +175,11 @@ class Nips2018ShapesQA(Environment):
 
         self.datasets = dict(train=train, val=val, test=test)
 
+    def close(self):
+        pass
 
-class Nips2018Set(Environment):
+
+class Nips2018Set(object):
     def __init__(self):
         train_seed, val_seed, test_seed = 0, 1, 2
 
@@ -182,8 +189,11 @@ class Nips2018Set(Environment):
 
         self.datasets = dict(train=train, val=val, test=test)
 
+    def close(self):
+        pass
 
-class Nips2018Clevr(Environment):
+
+class Nips2018Clevr(object):
     def __init__(self):
         train_seed, val_seed, test_seed = 0, 1, 2
 
@@ -193,8 +203,11 @@ class Nips2018Clevr(Environment):
 
         self.datasets = dict(train=train, val=val, test=test)
 
+    def close(self):
+        pass
 
-class Nips2018Atari(Environment):
+
+class Nips2018Atari(object):
     def __init__(self):
         train_seed, val_seed, test_seed = 0, 1, 2
 
@@ -204,8 +217,27 @@ class Nips2018Atari(Environment):
 
         self.datasets = dict(train=train, val=val, test=test)
 
+    def close(self):
+        pass
 
-class Nips2018Collect(Environment):
+
+class GenericFileAtariEnv(object):
+    def __init__(self):
+        train_seed, val_seed, test_seed = 0, 1, 2
+        load_path = "~/dps_data/raw_image/atari"
+        if cfg.load_path:
+            load_path = cfg.load_path
+        train = AtariImageFileDataset(seed=val_seed, load_path=load_path)
+        val = AtariImageFileDataset(seed=val_seed, load_path=load_path)
+        test = AtariImageFileDataset(seed=test_seed, load_path=load_path)
+
+        self.datasets = dict(train=train, val=val, test=test)
+
+    def close(self):
+        pass
+
+
+class Nips2018Collect(object):
     def __init__(self):
         train_seed, val_seed, test_seed = 0, 1, 2
 
@@ -215,6 +247,9 @@ class Nips2018Collect(Environment):
         test = GameDataset(env=env, n_examples=cfg.n_val, seed=test_seed)
 
         self.datasets = dict(train=train, val=val, test=test)
+
+    def close(self):
+        pass
 
 
 env_config = Config(
@@ -475,6 +510,14 @@ def get_env_config(task, size=14, in_colour=False, ops="addition", image_size="n
             test_episode_range=(-1, None),
             background_cfg=dict(mode="learn_solid"),
         )
+    elif task == "custom_atari":
+        config.update(
+            build_env=AtariImageFileDataset,
+            image_shape=(260,160),
+            load_path=,
+            one_hot=False,
+        )
+
     else:
         raise Exception("Unknown task `{}`".format(task))
     return config
